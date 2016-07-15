@@ -1,0 +1,414 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- saved from url=(0074)file:///D:/AI/Understanding%20LSTM%20Networks%20-%2D%20colah's%20blog.html -->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        
+        <title>Understanding LSTM Networks -- colah's blog</title>
+        
+        <link rel="stylesheet" href="./Understanding LSTM Networks -- colah&#39;s blog_files/cmun-serif.css">
+        <link rel="stylesheet" href="./Understanding LSTM Networks -- colah&#39;s blog_files/cmun-serif-slanted.css">
+
+        <!--BOOTSTRAP-->
+        <link href="./Understanding LSTM Networks -- colah&#39;s blog_files/bootstrap.min.css" rel="stylesheet">
+        <!--mobile first-->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <!--removed html from url but still is html-->
+        
+
+        <!--font awesome-->
+        <link href="./Understanding LSTM Networks -- colah&#39;s blog_files/font-awesome.css" rel="stylesheet">
+
+        <!--fonts: allan & cardo-->
+        <link href="./Understanding LSTM Networks -- colah&#39;s blog_files/css" rel="stylesheet" type="text/css">
+        <link href="./Understanding LSTM Networks -- colah&#39;s blog_files/css(1)" rel="stylesheet" type="text/css">
+
+        <link href="./Understanding LSTM Networks -- colah&#39;s blog_files/sticky-footer-navbar.css" rel="stylesheet">
+
+        <link href="./Understanding LSTM Networks -- colah&#39;s blog_files/default.css" rel="stylesheet">
+
+        
+
+        <!--Highlight-->
+        <link href="./Understanding LSTM Networks -- colah&#39;s blog_files/github.css" rel="stylesheet">
+        
+        <link href="http://colah.github.io/favicon.ico" rel="shortcut icon">
+
+
+        <script type="text/javascript" src="./Understanding LSTM Networks -- colah&#39;s blog_files/MathJax.js"></script><style type="text/css">.MathJax_Preview {color: #888}
+#MathJax_Message {position: fixed; left: 1em; bottom: 1.5em; background-color: #E6E6E6; border: 1px solid #959595; margin: 0px; padding: 2px 8px; z-index: 102; color: black; font-size: 80%; width: auto; white-space: nowrap}
+#MathJax_MSIE_Frame {position: absolute; top: 0; left: 0; width: 0px; z-index: 101; border: 0px; margin: 0px; padding: 0px}
+.MathJax_Error {color: #CC0000; font-style: italic}
+</style>
+
+    <style type="text/css">.MathJax_Hover_Frame {border-radius: .25em; -webkit-border-radius: .25em; -moz-border-radius: .25em; -khtml-border-radius: .25em; box-shadow: 0px 0px 15px #83A; -webkit-box-shadow: 0px 0px 15px #83A; -moz-box-shadow: 0px 0px 15px #83A; -khtml-box-shadow: 0px 0px 15px #83A; border: 1px solid #A6D ! important; display: inline-block; position: absolute}
+.MathJax_Menu_Button .MathJax_Hover_Arrow {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; -khtml-border-radius: 4px; font-family: 'Courier New',Courier; font-size: 9px; color: #F0F0F0}
+.MathJax_Menu_Button .MathJax_Hover_Arrow span {display: block; background-color: #AAA; border: 1px solid; border-radius: 3px; line-height: 0; padding: 4px}
+.MathJax_Hover_Arrow:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_Hover_Arrow:hover span {background-color: #CCC!important}
+</style><style type="text/css">#MathJax_About {position: fixed; left: 50%; width: auto; text-align: center; border: 3px outset; padding: 1em 2em; background-color: #DDDDDD; color: black; cursor: default; font-family: message-box; font-size: 120%; font-style: normal; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 15px; -webkit-border-radius: 15px; -moz-border-radius: 15px; -khtml-border-radius: 15px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_About.MathJax_MousePost {outline: none}
+.MathJax_Menu {position: absolute; background-color: white; color: black; width: auto; padding: 2px; border: 1px solid #CCCCCC; margin: 0; cursor: default; font: menu; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+.MathJax_MenuItem {padding: 2px 2em; background: transparent}
+.MathJax_MenuArrow {position: absolute; right: .5em; padding-top: .25em; color: #666666; font-size: .75em}
+.MathJax_MenuActive .MathJax_MenuArrow {color: white}
+.MathJax_MenuArrow.RTL {left: .5em; right: auto}
+.MathJax_MenuCheck {position: absolute; left: .7em}
+.MathJax_MenuCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuRadioCheck {position: absolute; left: 1em}
+.MathJax_MenuRadioCheck.RTL {right: 1em; left: auto}
+.MathJax_MenuLabel {padding: 2px 2em 4px 1.33em; font-style: italic}
+.MathJax_MenuRule {border-top: 1px solid #CCCCCC; margin: 4px 1px 0px}
+.MathJax_MenuDisabled {color: GrayText}
+.MathJax_MenuActive {background-color: Highlight; color: HighlightText}
+.MathJax_MenuDisabled:focus, .MathJax_MenuLabel:focus {background-color: #E8E8E8}
+.MathJax_ContextMenu:focus {outline: none}
+.MathJax_ContextMenu .MathJax_MenuItem:focus {outline: none}
+#MathJax_AboutClose {top: .2em; right: .2em}
+.MathJax_Menu .MathJax_MenuClose {top: -10px; left: -10px}
+.MathJax_MenuClose {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; font-family: 'Courier New',Courier; font-size: 24px; color: #F0F0F0}
+.MathJax_MenuClose span {display: block; background-color: #AAA; border: 1.5px solid; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; line-height: 0; padding: 8px 0 6px}
+.MathJax_MenuClose:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_MenuClose:hover span {background-color: #CCC!important}
+.MathJax_MenuClose:hover:focus {outline: none}
+</style><style type="text/css">.MathJax_Preview .MJXf-math {color: inherit!important}
+</style><style type="text/css">.MJX_Assistive_MathML {position: absolute!important; top: 0; left: 0; clip: rect(1px, 1px, 1px, 1px); padding: 1px 0 0 0!important; border: 0!important; height: 1px!important; width: 1px!important; overflow: hidden!important; display: block!important; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none}
+.MJX_Assistive_MathML.MJX_Assistive_MathML_Block {width: 100%!important}
+</style><style type="text/css">#MathJax_Zoom {position: absolute; background-color: #F0F0F0; overflow: auto; display: block; z-index: 301; padding: .5em; border: 1px solid black; margin: 0; font-weight: normal; font-style: normal; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; -webkit-box-sizing: content-box; -moz-box-sizing: content-box; box-sizing: content-box; box-shadow: 5px 5px 15px #AAAAAA; -webkit-box-shadow: 5px 5px 15px #AAAAAA; -moz-box-shadow: 5px 5px 15px #AAAAAA; -khtml-box-shadow: 5px 5px 15px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_ZoomOverlay {position: absolute; left: 0; top: 0; z-index: 300; display: inline-block; width: 100%; height: 100%; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+#MathJax_ZoomFrame {position: relative; display: inline-block; height: 0; width: 0}
+#MathJax_ZoomEventTrap {position: absolute; left: 0; top: 0; z-index: 302; display: inline-block; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+</style><style type="text/css">.MathJax_Preview {color: #888}
+#MathJax_Message {position: fixed; left: 1em; bottom: 1.5em; background-color: #E6E6E6; border: 1px solid #959595; margin: 0px; padding: 2px 8px; z-index: 102; color: black; font-size: 80%; width: auto; white-space: nowrap}
+#MathJax_MSIE_Frame {position: absolute; top: 0; left: 0; width: 0px; z-index: 101; border: 0px; margin: 0px; padding: 0px}
+.MathJax_Error {color: #CC0000; font-style: italic}
+</style><script type="text/javascript" async="" src="./Understanding LSTM Networks -- colah&#39;s blog_files/embed.js"></script><script async="" src="./Understanding LSTM Networks -- colah&#39;s blog_files/count.js"></script><script type="text/javascript" async="" src="./Understanding LSTM Networks -- colah&#39;s blog_files/count(1).js"></script><script type="text/javascript" async="" src="./Understanding LSTM Networks -- colah&#39;s blog_files/count(1).js"></script><style type="text/css">.MJXp-script {font-size: .8em}
+.MJXp-right {-webkit-transform-origin: right; -moz-transform-origin: right; -ms-transform-origin: right; -o-transform-origin: right; transform-origin: right}
+.MJXp-bold {font-weight: bold}
+.MJXp-italic {font-style: italic}
+.MJXp-scr {font-family: MathJax_Script,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-frak {font-family: MathJax_Fraktur,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-sf {font-family: MathJax_SansSerif,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-cal {font-family: MathJax_Caligraphic,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-mono {font-family: MathJax_Typewriter,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-largeop {font-size: 150%}
+.MJXp-largeop.MJXp-int {vertical-align: -.2em}
+.MJXp-math {display: inline-block; line-height: 1.2; text-indent: 0; font-family: 'Times New Roman',Times,STIXGeneral,serif; white-space: nowrap; border-collapse: collapse}
+.MJXp-display {display: block; text-align: center; margin: 1em 0}
+.MJXp-math span {display: inline-block}
+.MJXp-box {display: block!important; text-align: center}
+.MJXp-box:after {content: " "}
+.MJXp-rule {display: block!important; margin-top: .1em}
+.MJXp-char {display: block!important}
+.MJXp-mo {margin: 0 .15em}
+.MJXp-mfrac {margin: 0 .125em; vertical-align: .25em}
+.MJXp-denom {display: inline-table!important; width: 100%}
+.MJXp-denom > * {display: table-row!important}
+.MJXp-surd {vertical-align: top}
+.MJXp-surd > * {display: block!important}
+.MJXp-script-box > *  {display: table!important; height: 50%}
+.MJXp-script-box > * > * {display: table-cell!important; vertical-align: top}
+.MJXp-script-box > *:last-child > * {vertical-align: bottom}
+.MJXp-script-box > * > * > * {display: block!important}
+.MJXp-mphantom {visibility: hidden}
+.MJXp-munderover {display: inline-table!important}
+.MJXp-over {display: inline-block!important; text-align: center}
+.MJXp-over > * {display: block!important}
+.MJXp-munderover > * {display: table-row!important}
+.MJXp-mtable {vertical-align: .25em; margin: 0 .125em}
+.MJXp-mtable > * {display: inline-table!important; vertical-align: middle}
+.MJXp-mtr {display: table-row!important}
+.MJXp-mtd {display: table-cell!important; text-align: center; padding: .5em 0 0 .5em}
+.MJXp-mtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-mlabeledtr {display: table-row!important}
+.MJXp-mlabeledtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mlabeledtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-merror {background-color: #FFFF88; color: #CC0000; border: 1px solid #CC0000; padding: 1px 3px; font-style: normal; font-size: 90%}
+.MJXp-scale0 {-webkit-transform: scaleX(.0); -moz-transform: scaleX(.0); -ms-transform: scaleX(.0); -o-transform: scaleX(.0); transform: scaleX(.0)}
+.MJXp-scale1 {-webkit-transform: scaleX(.1); -moz-transform: scaleX(.1); -ms-transform: scaleX(.1); -o-transform: scaleX(.1); transform: scaleX(.1)}
+.MJXp-scale2 {-webkit-transform: scaleX(.2); -moz-transform: scaleX(.2); -ms-transform: scaleX(.2); -o-transform: scaleX(.2); transform: scaleX(.2)}
+.MJXp-scale3 {-webkit-transform: scaleX(.3); -moz-transform: scaleX(.3); -ms-transform: scaleX(.3); -o-transform: scaleX(.3); transform: scaleX(.3)}
+.MJXp-scale4 {-webkit-transform: scaleX(.4); -moz-transform: scaleX(.4); -ms-transform: scaleX(.4); -o-transform: scaleX(.4); transform: scaleX(.4)}
+.MJXp-scale5 {-webkit-transform: scaleX(.5); -moz-transform: scaleX(.5); -ms-transform: scaleX(.5); -o-transform: scaleX(.5); transform: scaleX(.5)}
+.MJXp-scale6 {-webkit-transform: scaleX(.6); -moz-transform: scaleX(.6); -ms-transform: scaleX(.6); -o-transform: scaleX(.6); transform: scaleX(.6)}
+.MJXp-scale7 {-webkit-transform: scaleX(.7); -moz-transform: scaleX(.7); -ms-transform: scaleX(.7); -o-transform: scaleX(.7); transform: scaleX(.7)}
+.MJXp-scale8 {-webkit-transform: scaleX(.8); -moz-transform: scaleX(.8); -ms-transform: scaleX(.8); -o-transform: scaleX(.8); transform: scaleX(.8)}
+.MJXp-scale9 {-webkit-transform: scaleX(.9); -moz-transform: scaleX(.9); -ms-transform: scaleX(.9); -o-transform: scaleX(.9); transform: scaleX(.9)}
+.MathJax_PHTML .noError {vertical-align: ; font-size: 90%; text-align: left; color: black; padding: 1px 3px; border: 1px solid}
+</style><style type="text/css">:root #content > #center > .dose > .dosesingle,
+:root #content > #right > .dose > .dosesingle
+{display:none !important;}</style><style type="text/css">.MathJax_Display {text-align: center; margin: 1em 0em; position: relative; display: block!important; text-indent: 0; max-width: none; max-height: none; min-width: 0; min-height: 0; width: 100%}
+.MathJax .merror {background-color: #FFFF88; color: #CC0000; border: 1px solid #CC0000; padding: 1px 3px; font-style: normal; font-size: 90%}
+.MathJax .MJX-monospace {font-family: monospace}
+.MathJax .MJX-sans-serif {font-family: sans-serif}
+#MathJax_Tooltip {background-color: InfoBackground; color: InfoText; border: 1px solid black; box-shadow: 2px 2px 5px #AAAAAA; -webkit-box-shadow: 2px 2px 5px #AAAAAA; -moz-box-shadow: 2px 2px 5px #AAAAAA; -khtml-box-shadow: 2px 2px 5px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true'); padding: 3px 4px; z-index: 401; position: absolute; left: 0; top: 0; width: auto; height: auto; display: none}
+.MathJax {display: inline; font-style: normal; font-weight: normal; line-height: normal; font-size: 100%; font-size-adjust: none; text-indent: 0; text-align: left; text-transform: none; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; direction: ltr; max-width: none; max-height: none; min-width: 0; min-height: 0; border: 0; padding: 0; margin: 0}
+.MathJax:focus, body :focus .MathJax {display: inline-table}
+.MathJax img, .MathJax nobr, .MathJax a {border: 0; padding: 0; margin: 0; max-width: none; max-height: none; min-width: 0; min-height: 0; vertical-align: 0; line-height: normal; text-decoration: none}
+img.MathJax_strut {border: 0!important; padding: 0!important; margin: 0!important; vertical-align: 0!important}
+.MathJax span {display: inline; position: static; border: 0; padding: 0; margin: 0; vertical-align: 0; line-height: normal; text-decoration: none}
+.MathJax nobr {white-space: nowrap!important}
+.MathJax img {display: inline!important; float: none!important}
+.MathJax * {transition: none; -webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none}
+.MathJax_Processing {visibility: hidden; position: fixed; width: 0; height: 0; overflow: hidden}
+.MathJax_Processed {display: none!important}
+.MathJax_ExBox {display: block!important; overflow: hidden; width: 1px; height: 60ex; min-height: 0; max-height: none}
+.MathJax .MathJax_EmBox {display: block!important; overflow: hidden; width: 1px; height: 60em; min-height: 0; max-height: none}
+.MathJax .MathJax_HitBox {cursor: text; background: white; opacity: 0; filter: alpha(opacity=0)}
+.MathJax .MathJax_HitBox * {filter: none; opacity: 1; background: transparent}
+#MathJax_Tooltip * {filter: none; opacity: 1; background: transparent}
+@font-face {font-family: MathJax_Main; src: url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/woff/MathJax_Main-Regular.woff?rev=2.6.1') format('woff'), url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/otf/MathJax_Main-Regular.otf?rev=2.6.1') format('opentype')}
+@font-face {font-family: MathJax_Main-bold; src: url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/woff/MathJax_Main-Bold.woff?rev=2.6.1') format('woff'), url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/otf/MathJax_Main-Bold.otf?rev=2.6.1') format('opentype')}
+@font-face {font-family: MathJax_Main-italic; src: url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/woff/MathJax_Main-Italic.woff?rev=2.6.1') format('woff'), url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/otf/MathJax_Main-Italic.otf?rev=2.6.1') format('opentype')}
+@font-face {font-family: MathJax_Math-italic; src: url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/woff/MathJax_Math-Italic.woff?rev=2.6.1') format('woff'), url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/otf/MathJax_Math-Italic.otf?rev=2.6.1') format('opentype')}
+@font-face {font-family: MathJax_Caligraphic; src: url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/woff/MathJax_Caligraphic-Regular.woff?rev=2.6.1') format('woff'), url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/otf/MathJax_Caligraphic-Regular.otf?rev=2.6.1') format('opentype')}
+@font-face {font-family: MathJax_Size1; src: url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/woff/MathJax_Size1-Regular.woff?rev=2.6.1') format('woff'), url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/otf/MathJax_Size1-Regular.otf?rev=2.6.1') format('opentype')}
+@font-face {font-family: MathJax_Size2; src: url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/woff/MathJax_Size2-Regular.woff?rev=2.6.1') format('woff'), url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/otf/MathJax_Size2-Regular.otf?rev=2.6.1') format('opentype')}
+@font-face {font-family: MathJax_Size3; src: url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/woff/MathJax_Size3-Regular.woff?rev=2.6.1') format('woff'), url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/otf/MathJax_Size3-Regular.otf?rev=2.6.1') format('opentype')}
+@font-face {font-family: MathJax_Size4; src: url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/woff/MathJax_Size4-Regular.woff?rev=2.6.1') format('woff'), url('http://cdn.mathjax.org/mathjax/2.6-latest/fonts/HTML-CSS/TeX/otf/MathJax_Size4-Regular.otf?rev=2.6.1') format('opentype')}
+.MathJax .noError {vertical-align: ; font-size: 90%; text-align: left; color: black; padding: 1px 3px; border: 1px solid}
+</style><script src="./Understanding LSTM Networks -- colah&#39;s blog_files/count-data.js"></script><script src="./Understanding LSTM Networks -- colah&#39;s blog_files/count-data(1).js"></script><script src="./Understanding LSTM Networks -- colah&#39;s blog_files/count-data(2).js"></script><script src="./Understanding LSTM Networks -- colah&#39;s blog_files/count-data(3).js"></script><script src="./Understanding LSTM Networks -- colah&#39;s blog_files/count-data(4).js"></script><script src="./Understanding LSTM Networks -- colah&#39;s blog_files/count-data(5).js"></script><script src="./Understanding LSTM Networks -- colah&#39;s blog_files/count-data(6).js"></script><script src="./Understanding LSTM Networks -- colah&#39;s blog_files/count-data(7).js"></script><script src="./Understanding LSTM Networks -- colah&#39;s blog_files/alfie.f51946af45e0b561c60f768335c9eb79.js" async="" charset="UTF-8"></script></head>
+
+    <body><div id="MathJax_Message" style="display: none;"></div><div style="visibility: hidden; overflow: hidden; position: absolute; top: 0px; height: 1px; width: auto; padding: 0px; border: 0px; margin: 0px; text-align: left; text-indent: 0px; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal;"><div id="MathJax_Hidden"></div></div><div id="MathJax_Message" style="display: none;"></div>
+        <div id="wrap">
+            
+            <div id="content">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h1>Understanding LSTM Networks</h1>
+                            <div class="info">
+    <p style="font-family:CMSS; font-size:120%">Posted on August 27, 2015</p>
+    
+    <!--
+        by colah
+    -->
+</div>
+<br>
+
+<h2 id="recurrent-neural-networks">Recurrent Neural Networks</h2>
+<p>인간은 매 순간을 구분지어서 생각하지 않는다. 이 글을 읽는 동안에도, 당신은 이전 문장에 대한 이해를 바탕으로 다음 문장을 이해하게 된다. 다시 말해 모든것을 잊어버리고 매순간 다시 생각을 하지 않는다. 이것을 지속성이 있다고 말한다.</p>
+<p>전통적인 신경망에서는 지속성을 가지기 힘든 것은, 치명적인 결점으로 여겨졌다. 예를 들어, 영화의 각 장면에서 무슨 일이 발생하는지 알아보려 한다고 해보자. 전통적인 신경망에서는 이 작업이 쉽지 않은데, 영화에서는 어떤 장면을 이해하기 위해서는 이전 장면에서 발생한 사건을 알아야 하기 때문이다.</p>
+<p>회귀신경망 Recurrent Nueral Network (이하 RNN) 에서는 이러한 이슈를 다룬다. RNN 은 신경망에 루프를 추가해서 정보가 지속적으로 남아있도록 하였다.</p>
+<div style="width:11.8%; margin-left:auto; margin-right:auto; margin-bottom:5px; margin-top:17px;">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/RNN-rolled.png" alt="">
+</div>
+<div class="caption" style="margin-bottom:20px;">
+<strong>Recurrent Neural Networks have loops.</strong>
+</div>
+<p>위의 다이어그램에서, 신경망 <span class="math"><span class="MathJax_Preview" style="color: inherit;"></span><span class="MathJax" id="MathJax-Element-1-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;mi&gt;A&lt;/mi&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-1" role="math" style="width: 0.975em; display: inline-block;"><span style="display: inline-block; position: relative; width: 0.789em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.391em 1000.74em 2.363em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-2"><span class="mi" id="MathJax-Span-3" style="font-family: MathJax_Math-italic;">A</span></span><span style="display: inline-block; width: 0px; height: 2.225em;"></span></span></span><span style="display: inline-block; overflow: hidden; vertical-align: -0.053em; border-left-width: 0px; border-left-style: solid; width: 0px; height: 0.947em;"></span></span></nobr><span class="MJX_Assistive_MathML" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML"><mi>A</mi></math></span></span><script type="math/tex" id="MathJax-Element-1">A</script></span>&nbsp;는 
+    입력 <span class="math"><span class="MathJax_Preview" style="color: inherit;"></span><span class="MathJax" id="MathJax-Element-2-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;msub&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-4" role="math" style="width: 1.113em; display: inline-block;"><span style="display: inline-block; position: relative; width: 0.928em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.623em 1000.93em 2.502em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-5"><span class="msubsup" id="MathJax-Span-6"><span style="display: inline-block; position: relative; width: 0.882em; height: 0px;"><span style="position: absolute; clip: rect(3.382em 1000.51em 4.123em -999.998em); top: -3.979em; left: 0.002em;"><span class="mi" id="MathJax-Span-7" style="font-family: MathJax_Math-italic;">x</span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span><span style="position: absolute; top: -3.84em; left: 0.558em;"><span class="mi" id="MathJax-Span-8" style="font-size: 70.7%; font-family: MathJax_Math-italic;">t</span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span></span></span></span><span style="display: inline-block; width: 0px; height: 2.225em;"></span></span></span><span style="display: inline-block; overflow: hidden; vertical-align: -0.219em; border-left-width: 0px; border-left-style: solid; width: 0px; height: 0.836em;"></span></span></nobr><span class="MJX_Assistive_MathML" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML"><msub><mi>x</mi><mi>t</mi></msub></math></span></span><script type="math/tex" id="MathJax-Element-2">x_t</script>&nbsp;에 
+    대해서</span> 출력 <span class="math"><span class="MathJax_Preview" style="color: inherit;"></span><span class="MathJax" id="MathJax-Element-3-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;msub&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-9" role="math" style="width: 1.16em; display: inline-block;"><span style="display: inline-block; position: relative; width: 0.975em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.391em 1000.98em 2.502em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-10"><span class="msubsup" id="MathJax-Span-11"><span style="display: inline-block; position: relative; width: 0.928em; height: 0px;"><span style="position: absolute; clip: rect(3.15em 1000.56em 4.123em -999.998em); top: -3.979em; left: 0.002em;"><span class="mi" id="MathJax-Span-12" style="font-family: MathJax_Math-italic;">h</span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span><span style="position: absolute; top: -3.84em; left: 0.558em;"><span class="mi" id="MathJax-Span-13" style="font-size: 70.7%; font-family: MathJax_Math-italic;">t</span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span></span></span></span><span style="display: inline-block; width: 0px; height: 2.225em;"></span></span></span><span style="display: inline-block; overflow: hidden; vertical-align: -0.219em; border-left-width: 0px; border-left-style: solid; width: 0px; height: 1.114em;"></span></span></nobr><span class="MJX_Assistive_MathML" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML"><msub><mi>h</mi><mi>t</mi></msub></math></span></span><script type="math/tex" id="MathJax-Element-3">h_t</script>&nbsp;을 
+    가진다</span>. 그리고 루프를 통해 특정스텝에서 얻은 값은 다음스텝으로 전달해준다.</p>
+<p>이런한 루프때문에 RNN 이 굉장히 이해하기 힘들다고 느껴진다. 그러나 조금만 생각해보면, 평범한 신경망과 크게 다르지 않다는 것을 알 수 있다. RNN은 똑같은 신경망을 여러개 복사해서 값을 체인으로 넘겨주는 것과 동일한 형태이다. 그럼 루프를 펼쳐서 무슨일이 일어나는지 살펴보자:</p>
+<div style="width:70%; margin-left:auto; margin-right:auto; margin-bottom:5px; margin-top:17px;">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/RNN-unrolled.png" alt="An unrolled recurrent neural network.">
+</div>
+<div class="caption" style="margin-bottom:20px;">
+<strong>An unrolled recurrent neural network.</strong>
+</div>
+                            <p>이런 체인 형태는 RNN 이 본질적으로는 시퀀스와 리스트 형태의 데이터를 다루기 위한 자연스러운 설계방법이라는 것을 뜻한다</p>
+<p>그리고 실제로 유용하게 사용되고 있다! 최근 몇년, RNN 은 여러가지 문제를 해결하기 위해 활용되어왔다 : 음성인식, 언어모델링, 번역, 이미지 캡션...&nbsp; 무수히 많다. RNN이 이루어낸 성과에 대해서는 Andrej Karpathy 의 블로그 <a href="http://karpathy.github.io/2015/05/21/rnn-effectiveness/">The Unreasonable Effectiveness of Recurrent Neural Networks</a> 에 잘 나와있다. 어쨌든 진짜 놀라운 결과이다</p>
+<p>이러한 성공의 핵심에는 "LSTM" 이 있다. 이것은 특별한 형태의 RNN 으로 표준모형보다 훨씬 잘 동작한다. RNN 기반으로 한 놀라운 성과의 대부분은 LSTM을 사용했다. 이제부터 이러한 LSTM 에 대해서 이야기해보려고 한다.</p>
+<h2 id="the-problem-of-long-term-dependencies">The Problem of Long-Term Dependencies</h2>
+<p>RNN 의 장점중 하나는 현재 작업에서 이전 정보를 사용할 수 있게 하자는 아이디어이다. 비디오를 볼때 현재 장면을 이해하기 위해서 이전 장명을 이용하는 것처럼 말이다. RNN 이 이렇게 할 수 있다면 매우 유용할 것이다. 과연 이것이 가능한 것일까? 경우에 따라 다르다.</p>
+<p>어떤 작업은, 현재 정보만을 이용해서 처리할 수 있다. 예를 들어 문장에서 이전 단어를 보고 다음 단어를 유추한다고 해보자. “the clouds are in the <em>sky</em>,” 라는 문장에서 마지막 단어를 예측하기 위해 추가 정보는 필요없다. 마지막 단어가 sky 라는 것은 매우 분명한 사실이다. 필요한 정보와 그것을 필요로 하는 곳의 거리가 가까우면 , RNN 은&nbsp; 문제없이 학습할 수 있을 것이다</p>
+<div style="width:50%; margin-left:auto; margin-right:auto; margin-bottom:17px; margin-top:17px;">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/RNN-shorttermdepdencies.png" alt="">
+</div>
+<p>많은 문장을 담고 있는 경우를 보자. “I grew up in France… I speak fluent <em>French</em>.” 에서 마지막 단어를 예측한다고 해보자. 현재 정보로 마지막 단어가 언어의 한 종류라는 것을 유추할 수 있다. 하지만 구체적으로 하고 싶다면 좀더 앞으로 가서 France 가 있는 문장을 봐야 한다. 필요한 정보와 그것을 필요로 하는 위치 사이에 큰 간격이 있게 된다.</p>
+<p>불행히도, 간격이 커질 수록, RNN은 연관성을 만들기가 힘들어진다</p>
+<div style="width:65.2%; margin-left:auto; margin-right:auto; margin-bottom:17px; margin-top:17px;">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/RNN-longtermdependencies.png" alt="Neural networks struggle with long term dependencies." data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-53">
+</div>
+<p>이론적으로야 RNN 도&nbsp; 위에서 말한 “long-term dependencies.”를&nbsp; 처리 할 수 있다. 안타깝게도 현실적으로 RNN 은 이러한 문제를 다루기 힘든 것처럼 보인다. 이 문제는&nbsp; <a href="http://people.idsia.ch/~juergen/SeppHochreiter1991ThesisAdvisorSchmidhuber.pdf">Hochreiter (1991) [German]</a> 와 <a href="http://www-dsi.ing.unifi.it/~paolo/ps/tnn-94-gradient.pdf">Bengio, et al. (1994)</a> 에 의해 왜 이것이 힘든지 그 이유에 대해서 자세히 설명되어졌다.</p>
+<p>그리고 고맙게도 LSTM에는 이러한 문제가 없다. </p>
+                            <p>(역자 주 - Vanishing Gradient Descent 에 대한 이야기이다)</p>
+<h2 id="lstm-networks">LSTM Networks</h2>
+<p>Long Short Term Memory networks – 일반적으로 “LSTM” 이라고 불린다– 는 특별한 형태의 RNN으로 long-term dependencies 를 학습할 수 있다. <a href="http://deeplearning.cs.cmu.edu/pdfs/Hochreiter97_lstm.pdf">Hochreiter &amp; Schmidhuber (1997)</a> 에 의해 소개된 이 방법은 많은 사람들에 의해서 점점 발전되어 왔다.<a href="http://colah.github.io/posts/2015-08-Understanding-LSTMs/#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> 이 방법은 매우 다양한 문제에서 놀라울 정도로 잘 동작하며, 현재 광범위하게 쓰이고 있다. </p>
+<p>LSTM 은 long-term dependency 문제를 잘 해결하도록 만들어졌다. 이것은 실제로 동작할 때 그렇다는 이야기이고, 학습을 잘 하는 것과 조금 다른 이야기이다.</p>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-17">모든 RNN 은 신경망모듈이 반복되어서 이어지는 형태를 가진다. 기본 RNN 에서 반복되는 모듈은 매우 단순한 형태를 가지는데, tanh(아크탄젠트) 함수 하나로 구성되기도 한다. </p>
+<div style="width:90%; margin-left:auto; margin-right:auto; margin-bottom:15px; margin-top:15px;">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/LSTM3-SimpleRNN.png" alt="" data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-54">
+<div class="caption" style="margin-bottom:10px;">
+<strong>The repeating module in a standard RNN contains a single layer.</strong>
+</div>
+</div>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-18">LSTM 역시 체인형태의 구조를 가지지만, 반복되는 모듈의 형태가 조금 다르다. 하나의 레이어 대신에 특별한 방식으로 상호 작용하는 네개의 레이어로 되어 있다. </p>
+<div style="width:90%; margin-left:auto; margin-right:auto; margin-bottom:15px; margin-top:15px;">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/LSTM3-chain.png" alt="A LSTM neural network." data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-55">
+<div class="caption" style="margin-bottom:10px;">
+<strong>The repeating module in an LSTM contains four interacting layers.</strong>
+</div>
+</div>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-19">세부적인 동작 방법에 대해서는 걱정하지 않아도 된다. 앞으로 LSTM 에 대해서 천천히 배워갈 것이다. 지금은 우리가 사용하게 된 기호에 먼저 익숙해 질 필요가 있다. </p>
+<div style="width:70%; margin-left:auto; margin-right:auto; margin-bottom:8px; margin-top:8px;">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/LSTM2-notation.png" alt="" data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-56">
+</div>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-20">위의 다이어그램에서, 각각의 선은 출력값을 다음 입력에 연결하는 관계를 말한다. 분홍색 원은 벡터 합과 같은 연산을 의미하고, 노란색박스는 학습된 신경망 레이어가 된다. 선이 합쳐지는 것은 값의 (주로 벡터값) 병합을 뜻하고, 선이 나뉘어지는 것은 복사후에 서로 다른 곳으로 보내지는 것을 의미한다. </p>
+<h2 id="the-core-idea-behind-lstms">The Core Idea Behind LSTMs</h2>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-21">LSTM 의 핵심은 cell state 로, 다이어그램 상단에 있는 수평선으로 표시된다.</p>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-22">cell state는 일종의 컨베이어 벨트와 같다. 모듈체인과 함께 이어져 나가며, 작은 선형적 변화가 이루어진다. 컨베이어 벨트 위에서 정보가 흘러가는 것을 상상하면 된다.</p>
+<div style="width:90%; margin-left:auto; margin-right:auto; margin-bottom:8px; margin-top:8px;">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/LSTM3-C-line.png" alt="" data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-57">
+</div>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-23">LSTM 은 게이트라고 불리는 정교한 장치에 의해서 cell state에 정보를 추가 삭제할 수 있다.</p>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-24">게이트는 게이트에 입력되는 값을 사용할 지 말지 결정한다. 게이트는 시그모이드 레이어와 곱연산자로 구성되어 있다. </p>
+<div style="width:12%; margin-left:auto; margin-right:auto; margin-bottom:8px; margin-top:8px;">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/LSTM3-gate.png" alt="" data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-58">
+</div>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-25">시그모이드는 0과 1 사이의 값을 출력하는데, 각 부분들의 결과값 비중을 어떻게 할 지 결정한다. 0은 “사용하지 않는다” 이고 1은 “전부 사용한다” 라는 의미이다. </p>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-26">LSTM 은 cell state 를 기억하거나 조정하기 위해서 세개의 게이트를 사용한다.</p>
+<h2 id="step-by-step-lstm-walk-through">Step-by-Step LSTM Walk Through</h2>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-27">LSTM 의 첫번째 단계는 셀상테에서 어떤 정보를 버릴지 결정하는 것이다. 이것은 “forget gate layer.” 라고 불리는 시그모이드레이어에 의해 결정된다. 셀상태 <span class="math"><span class="MathJax_Preview" style="color: inherit;"></span><span class="MathJax" id="MathJax-Element-8-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;msub&gt;&lt;mi&gt;C&lt;/mi&gt;&lt;mrow class=&quot;MJX-TeXAtom-ORD&quot;&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;&amp;#x2212;&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-34" role="math" style="width: 2.41em; display: inline-block;"><span style="display: inline-block; position: relative; width: 1.993em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.391em 1001.99em 2.502em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-35"><span class="msubsup" id="MathJax-Span-36"><span style="display: inline-block; position: relative; width: 1.947em; height: 0px;"><span style="position: absolute; clip: rect(3.15em 1000.74em 4.123em -999.998em); top: -3.979em; left: 0.002em;"><span class="mi" id="MathJax-Span-37" style="font-family: MathJax_Math-italic;">C</span></span><span style="position: absolute; top: -3.84em; left: 0.697em;"><span class="texatom" id="MathJax-Span-38"><span class="mrow" id="MathJax-Span-39"><span class="mi" id="MathJax-Span-40" style="font-size: 70.7%; font-family: MathJax_Math-italic;">t</span><span class="mo" id="MathJax-Span-41" style="font-size: 70.7%; font-family: MathJax_Main;">−</span><span class="mn" id="MathJax-Span-42" style="font-size: 70.7%; font-family: MathJax_Main;">1</span></span></span></span></span></span></span></span></span></span></nobr><span class="MJX_Assistive_MathML" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML"><msub><mi>C</mi><mrow class="MJX-TeXAtom-ORD"><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub></math></span></span><script type="math/tex" id="MathJax-Element-8">C_{t-1}</script></span>
+    에 있는 값들에 대해서&nbsp; <span class="math"><span class="MathJax_Preview" style="color: inherit;"></span><span class="MathJax" id="MathJax-Element-4-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;msub&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mrow class=&quot;MJX-TeXAtom-ORD&quot;&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;&amp;#x2212;&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-14" role="math" style="width: 2.225em; display: inline-block;"><span style="display: inline-block; position: relative; width: 1.854em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.391em 1001.85em 2.502em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-15"><span class="msubsup" id="MathJax-Span-16"><span style="display: inline-block; position: relative; width: 1.808em; height: 0px;"><span style="position: absolute; clip: rect(3.15em 1000.56em 4.123em -999.998em); top: -3.979em; left: 0.002em;"><span class="mi" id="MathJax-Span-17" style="font-family: MathJax_Math-italic;">h</span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span><span style="position: absolute; top: -3.84em; left: 0.558em;"><span class="texatom" id="MathJax-Span-18"><span class="mrow" id="MathJax-Span-19"><span class="mi" id="MathJax-Span-20" style="font-size: 70.7%; font-family: MathJax_Math-italic;">t</span><span class="mo" id="MathJax-Span-21" style="font-size: 70.7%; font-family: MathJax_Main;">−</span><span class="mn" id="MathJax-Span-22" style="font-size: 70.7%; font-family: MathJax_Main;">1</span></span></span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span></span></span></span><span style="display: inline-block; width: 0px; height: 2.225em;"></span></span></span><span style="display: inline-block; overflow: hidden; vertical-align: -0.219em; border-left-width: 0px; border-left-style: solid; width: 0px; height: 1.114em;"></span></span></nobr><span class="MJX_Assistive_MathML" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML"><msub><mi>h</mi><mrow class="MJX-TeXAtom-ORD"><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub></math></span></span><script type="math/tex" id="MathJax-Element-4">h_{t-1}</script>
+    과</span> <span class="math"><span class="MathJax_Preview" style="color: inherit;"></span><span class="MathJax" id="MathJax-Element-5-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;msub&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-23" role="math" style="width: 1.113em; display: inline-block;"><span style="display: inline-block; position: relative; width: 0.928em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.623em 1000.93em 2.502em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-24"><span class="msubsup" id="MathJax-Span-25"><span style="display: inline-block; position: relative; width: 0.882em; height: 0px;"><span style="position: absolute; clip: rect(3.382em 1000.51em 4.123em -999.998em); top: -3.979em; left: 0.002em;"><span class="mi" id="MathJax-Span-26" style="font-family: MathJax_Math-italic;">x</span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span><span style="position: absolute; top: -3.84em; left: 0.558em;"><span class="mi" id="MathJax-Span-27" style="font-size: 70.7%; font-family: MathJax_Math-italic;">t</span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span></span></span></span><span style="display: inline-block; width: 0px; height: 2.225em;"></span></span></span><span style="display: inline-block; overflow: hidden; vertical-align: -0.219em; border-left-width: 0px; border-left-style: solid; width: 0px; height: 0.836em;"></span></span></nobr><span class="MJX_Assistive_MathML" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML"><msub><mi>x</mi><mi>t</mi></msub></math></span></span><script type="math/tex" id="MathJax-Element-5">x_t</script></span>
+    를 보고&nbsp; <span class="math"><span class="MathJax_Preview" style="color: inherit;"></span><span class="MathJax" id="MathJax-Element-6-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-28" role="math" style="width: 0.604em; display: inline-block;"><span style="display: inline-block; position: relative; width: 0.512em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.438em 1000.47em 2.363em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-29"><span class="mn" id="MathJax-Span-30" style="font-family: MathJax_Main;">0</span></span><span style="display: inline-block; width: 0px; height: 2.225em;"></span></span></span><span style="display: inline-block; overflow: hidden; vertical-align: -0.053em; border-left-width: 0px; border-left-style: solid; width: 0px; height: 0.947em;"></span></span></nobr><span class="MJX_Assistive_MathML" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML"><mn>0</mn></math></span></span><script type="math/tex" id="MathJax-Element-6">0</script>
+    과</span> <span class="math"><span class="MathJax_Preview" style="color: inherit;"></span><span class="MathJax" id="MathJax-Element-7-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-31" role="math" style="width: 0.604em; display: inline-block;"><span style="display: inline-block; position: relative; width: 0.512em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.438em 1000.42em 2.363em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-32"><span class="mn" id="MathJax-Span-33" style="font-family: MathJax_Main;">1</span></span><span style="display: inline-block; width: 0px; height: 2.225em;"></span></span></span><span style="display: inline-block; overflow: hidden; vertical-align: -0.053em; border-left-width: 0px; border-left-style: solid; width: 0px; height: 0.892em;"></span></span></nobr><span class="MJX_Assistive_MathML" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML"><mn>1</mn></math></span></span><script type="math/tex" id="MathJax-Element-7">1</script></span>&nbsp;사이의 
+    숫자를 만들어낸다.&nbsp; <span class="math"><span class="MathJax_Preview" style="color: inherit;"></span><span class="MathJax" id="MathJax-Element-9-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-43" role="math" style="width: 0.604em; display: inline-block;"><span style="display: inline-block; position: relative; width: 0.512em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.438em 1000.42em 2.363em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-44"><span class="mn" id="MathJax-Span-45" style="font-family: MathJax_Main;">1</span></span><span style="display: inline-block; width: 0px; height: 2.225em;"></span></span></span><span style="display: inline-block; overflow: hidden; vertical-align: -0.053em; border-left-width: 0px; border-left-style: solid; width: 0px; height: 0.892em;"></span></span></nobr><span class="MJX_Assistive_MathML" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML"><mn>1</mn></math></span></span><script type="math/tex" id="MathJax-Element-9">1</script>
+    은</span> “이것을 기억하고 있어” 라는 의미이고&nbsp; <span class="math"><span class="MathJax_Preview" style="color: inherit;"></span><span class="MathJax" id="MathJax-Element-10-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-46" role="math" style="width: 0.604em; display: inline-block;"><span style="display: inline-block; position: relative; width: 0.512em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.438em 1000.47em 2.363em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-47"><span class="mn" id="MathJax-Span-48" style="font-family: MathJax_Main;">0</span></span><span style="display: inline-block; width: 0px; height: 2.225em;"></span></span></span></span></nobr></span></span>은 “이것을 잊어버려라.” 가 된다.</p>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-28">다시 우리가 만들려는 언어모델을 생각해보면 기존의 모든 단어를 고려해서 다음 단어를 유추해내는 모델이다. 이러한 방식에서는, cell state 가 현재 주어의 성별을 알아야 한다. 그래야 올바른 대명사를 사용할 수 있다. 하지만 새로운 주어가 나타나면, 이전 주어의 성별은 잊어버려야만 한다.</p>
+<div style="width:90%; margin-left:auto; margin-right:auto; margin-bottom:8px; margin-top:8px;">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/LSTM3-focus-f.png" alt="" data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-59">
+</div>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-29">다음은 새로운 값을 cell state 에 저장할지 결정하는 것이다. 이것은 두가지 부분으로 되어 있다. 첫번째는 “input gate layer” 라고 불리는 시그모이드 레이어로, 이 값을 업데이트 할지 말지에 대해서 결정한다. 다음은 아크탄젠트 레이어를 이용해서 새로운 값 <span class="math"><span class="MathJax" id="MathJax-Element-11-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;msub&gt;&lt;mrow class=&quot;MJX-TeXAtom-ORD&quot;&gt;&lt;mover&gt;&lt;mi&gt;C&lt;/mi&gt;&lt;mo stretchy=&quot;false&quot;&gt;&amp;#x007E;&lt;/mo&gt;&lt;/mover&gt;&lt;/mrow&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-49" role="math" style="width: 1.391em; display: inline-block;"><span style="display: inline-block; position: relative; width: 1.16em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.16em 1001.16em 2.502em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-50"><span class="msubsup" id="MathJax-Span-51"><span style="display: inline-block; position: relative; width: 1.113em; height: 0px;"><span style="position: absolute; clip: rect(2.919em 1000.74em 4.123em -999.998em); top: -3.979em; left: 0.002em;"><span class="texatom" id="MathJax-Span-52"><span class="mrow" id="MathJax-Span-53"><span class="munderover" id="MathJax-Span-54"><span style="display: inline-block; position: relative; width: 0.789em; height: 0px;"><span style="position: absolute; clip: rect(3.15em 1000.74em 4.123em -999.998em); top: -3.979em; left: 0.002em;"><span class="mi" id="MathJax-Span-55" style="font-family: MathJax_Math-italic;">C<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.049em;"></span></span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span><span style="position: absolute; clip: rect(3.521em 1000.42em 3.891em -999.998em); top: -4.581em; left: 0.28em;"><span class="mo" id="MathJax-Span-56" style="font-family: MathJax_Main;">~</span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span></span></span></span></span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span><span style="position: absolute; top: -3.84em; left: 0.789em;"><span class="mi" id="MathJax-Span-57" style="font-size: 70.7%; font-family: MathJax_Math-italic;">t</span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span></span></span></span><span style="display: inline-block; width: 0px; height: 2.225em;"></span></span></span><span style="display: inline-block; overflow: hidden; vertical-align: -0.219em; border-left-width: 0px; border-left-style: solid; width: 0px; height: 1.392em;"></span></span></nobr><span class="MJX_Assistive_MathML" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML"><msub><mrow class="MJX-TeXAtom-ORD"><mover><mi>C</mi><mo stretchy="false">~</mo></mover></mrow><mi>t</mi></msub></math></span></span><script type="math/tex" id="MathJax-Element-11">\tilde{C}_t</script></span>&nbsp;를 
+    생성하고, 이것은 기존 cell state 에 더해지게 된다. 다음 스텝으로는 두값을 조합해서 상태를 변경하면 된다. </p>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-30">예제로 보이는 언어모델에서, 우리는 새로운 주어의 성별을 cell state 에 더하고 이전 것은 잊어버리게 된다.</p>
+<div style="width:90%; margin-left:auto; margin-right:auto; margin-bottom:8px; margin-top:8px;">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/LSTM3-focus-i.png" alt="" data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-60">
+</div>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-31">이제 이전 셀 상태 <span class="math"><span class="MathJax_Preview" style="color: inherit;"></span><span class="MathJax" id="MathJax-Element-12-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;msub&gt;&lt;mi&gt;C&lt;/mi&gt;&lt;mrow class=&quot;MJX-TeXAtom-ORD&quot;&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;&amp;#x2212;&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-58" role="math" style="width: 2.41em; display: inline-block;"><span style="display: inline-block; position: relative; width: 1.993em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.391em 1001.99em 2.502em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-59"><span class="msubsup" id="MathJax-Span-60"><span style="display: inline-block; position: relative; width: 1.947em; height: 0px;"><span style="position: absolute; clip: rect(3.15em 1000.74em 4.123em -999.998em); top: -3.979em; left: 0.002em;"><span class="mi" id="MathJax-Span-61" style="font-family: MathJax_Math-italic;">C<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.049em;"></span></span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span><span style="position: absolute; top: -3.84em; left: 0.697em;"><span class="texatom" id="MathJax-Span-62"><span class="mrow" id="MathJax-Span-63"><span class="mi" id="MathJax-Span-64" style="font-size: 70.7%; font-family: MathJax_Math-italic;">t</span><span class="mo" id="MathJax-Span-65" style="font-size: 70.7%; font-family: MathJax_Main;">−</span><span class="mn" id="MathJax-Span-66" style="font-size: 70.7%; font-family: MathJax_Main;">1</span></span></span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span></span></span></span><span style="display: inline-block; width: 0px; height: 2.225em;"></span></span></span><span style="display: inline-block; overflow: hidden; vertical-align: -0.219em; border-left-width: 0px; border-left-style: solid; width: 0px; height: 1.169em;"></span></span></nobr><span class="MJX_Assistive_MathML" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML"><msub><mi>C</mi><mrow class="MJX-TeXAtom-ORD"><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub></math></span></span><script type="math/tex" id="MathJax-Element-12">C_{t-1}</script></span>&nbsp;를 
+    , 새로운 셀 상태&nbsp; <span class="math"><span class="MathJax_Preview" style="color: inherit;"></span><span class="MathJax" id="MathJax-Element-13-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;msub&gt;&lt;mi&gt;C&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-67" role="math" style="width: 1.345em; display: inline-block;"><span style="display: inline-block; position: relative; width: 1.113em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.391em 1001.11em 2.502em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-68"><span class="msubsup" id="MathJax-Span-69"><span style="display: inline-block; position: relative; width: 1.067em; height: 0px;"><span style="position: absolute; clip: rect(3.15em 1000.74em 4.123em -999.998em); top: -3.979em; left: 0.002em;"><span class="mi" id="MathJax-Span-70" style="font-family: MathJax_Math-italic;">C<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.049em;"></span></span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span><span style="position: absolute; top: -3.84em; left: 0.697em;"><span class="mi" id="MathJax-Span-71" style="font-size: 70.7%; font-family: MathJax_Math-italic;">t</span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span></span></span></span><span style="display: inline-block; width: 0px; height: 2.225em;"></span></span></span><span style="display: inline-block; overflow: hidden; vertical-align: -0.219em; border-left-width: 0px; border-left-style: solid; width: 0px; height: 1.169em;"></span></span></nobr><span class="MJX_Assistive_MathML" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML"><msub><mi>C</mi><mi>t</mi></msub></math></span></span><script type="math/tex" id="MathJax-Element-13">C_t</script></span>&nbsp;로 
+    업데이트 할 차례이다. 이전 스텝에서 이미 값들은 다 결정되었기 때문에 적용만 하면 된다.</p>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-32">이전 상태를&nbsp; <span class="math"><span class="MathJax_Preview" style="color: inherit;"></span><span class="MathJax" id="MathJax-Element-14-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;msub&gt;&lt;mi&gt;f&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-72" role="math" style="width: 1.067em; display: inline-block;"><span style="display: inline-block; position: relative; width: 0.882em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.391em 1000.88em 2.549em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-73"><span class="msubsup" id="MathJax-Span-74"><span style="display: inline-block; position: relative; width: 0.836em; height: 0px;"><span style="position: absolute; clip: rect(3.15em 1000.56em 4.308em -999.998em); top: -3.979em; left: 0.002em;"><span class="mi" id="MathJax-Span-75" style="font-family: MathJax_Math-italic;">f<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.049em;"></span></span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span><span style="position: absolute; top: -3.84em; left: 0.512em;"><span class="mi" id="MathJax-Span-76" style="font-size: 70.7%; font-family: MathJax_Math-italic;">t</span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span></span></span></span><span style="display: inline-block; width: 0px; height: 2.225em;"></span></span></span><span style="display: inline-block; overflow: hidden; vertical-align: -0.275em; border-left-width: 0px; border-left-style: solid; width: 0px; height: 1.225em;"></span></span></nobr><span class="MJX_Assistive_MathML" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML"><msub><mi>f</mi><mi>t</mi></msub></math></span></span><script type="math/tex" id="MathJax-Element-14">f_t</script></span>
+    와 곱하고 나면, 이전 cell state 값을 잊어버리게 된다. 그리고 나서 우리가 구한&nbsp; <span class="math"><span class="MathJax_Preview" style="color: inherit;"></span><span class="MathJax" id="MathJax-Element-15-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;msub&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;&amp;#x2217;&lt;/mo&gt;&lt;msub&gt;&lt;mrow class=&quot;MJX-TeXAtom-ORD&quot;&gt;&lt;mover&gt;&lt;mi&gt;C&lt;/mi&gt;&lt;mo stretchy=&quot;false&quot;&gt;&amp;#x007E;&lt;/mo&gt;&lt;/mover&gt;&lt;/mrow&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-77" role="math" style="width: 3.336em; display: inline-block;"><span style="display: inline-block; position: relative; width: 2.78em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.16em 1002.78em 2.502em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-78"><span class="msubsup" id="MathJax-Span-79"><span style="display: inline-block; position: relative; width: 0.697em; height: 0px;"><span style="position: absolute; clip: rect(3.197em 1000.33em 4.123em -999.998em); top: -3.979em; left: 0.002em;"><span class="mi" id="MathJax-Span-80" style="font-family: MathJax_Math-italic;">i</span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span><span style="position: absolute; top: -3.84em; left: 0.326em;"><span class="mi" id="MathJax-Span-81" style="font-size: 70.7%; font-family: MathJax_Math-italic;">t</span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span></span></span><span class="mo" id="MathJax-Span-82" style="font-family: MathJax_Main; padding-left: 0.234em;">∗</span><span class="msubsup" id="MathJax-Span-83" style="padding-left: 0.234em;"><span style="display: inline-block; position: relative; width: 1.113em; height: 0px;"><span style="position: absolute; clip: rect(2.919em 1000.74em 4.123em -999.998em); top: -3.979em; left: 0.002em;"><span class="texatom" id="MathJax-Span-84"><span class="mrow" id="MathJax-Span-85"><span class="munderover" id="MathJax-Span-86"><span style="display: inline-block; position: relative; width: 0.789em; height: 0px;"><span style="position: absolute; clip: rect(3.15em 1000.74em 4.123em -999.998em); top: -3.979em; left: 0.002em;"><span class="mi" id="MathJax-Span-87" style="font-family: MathJax_Math-italic;">C<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.049em;"></span></span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span><span style="position: absolute; clip: rect(3.521em 1000.42em 3.891em -999.998em); top: -4.581em; left: 0.28em;"><span class="mo" id="MathJax-Span-88" style="font-family: MathJax_Main;">~</span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span></span></span></span></span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span><span style="position: absolute; top: -3.84em; left: 0.789em;"><span class="mi" id="MathJax-Span-89" style="font-size: 70.7%; font-family: MathJax_Math-italic;">t</span><span style="display: inline-block; width: 0px; height: 3.984em;"></span></span></span></span></span><span style="display: inline-block; width: 0px; height: 2.225em;"></span></span></span><span style="display: inline-block; overflow: hidden; vertical-align: -0.219em; border-left-width: 0px; border-left-style: solid; width: 0px; height: 1.392em;"></span></span></nobr><span class="MJX_Assistive_MathML" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML"><msub><mi>i</mi><mi>t</mi></msub><mo>∗</mo><msub><mrow class="MJX-TeXAtom-ORD"><mover><mi>C</mi><mo stretchy="false">~</mo></mover></mrow><mi>t</mi></msub></math></span></span><script type="math/tex" id="MathJax-Element-15">i_t*\tilde{C}_t</script></span>
+    를 더한다. 이것은 우리가 구한 값을 어느정도 비중으로 더할지 결정하는 과정이다.&nbsp; </p>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-33">언어모델의 경우에서, 이전 주어에 대한 성별정보를 제거하고, 방금전에 계산된 새로운 정보로 업데이트 하는 과정이다. </p>
+<div style="width:90%; margin-left:auto; margin-right:auto; margin-bottom:8px; margin-top:8px;">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/LSTM3-focus-C.png" alt="" data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-61">
+</div>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-34">마침내, 최종 출력값을 결정할 때이다. 출력값은 cell state를 기반으로 하지만 필터링 작업을 거치게 된다. 첫번째로, cell state 를 출력할지 말지를 결정하기 위해 시그모이드 레이어를 실행한다. 그리고, cell state 를 <span class="math"><span class="MathJax_Preview" style="color: inherit;"></span><span class="MathJax" id="MathJax-Element-16-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;mi&gt;tanh&lt;/mi&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-90" role="math" style="width: 2.456em; display: inline-block;"><span style="display: inline-block; position: relative; width: 2.039em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.391em 1002.04em 2.363em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-91"><span class="mi" id="MathJax-Span-92" style="font-family: MathJax_Main;">tanh</span></span><span style="display: inline-block; width: 0px; height: 2.225em;"></span></span></span><span style="display: inline-block; overflow: hidden; vertical-align: -0.053em; border-left-width: 0px; border-left-style: solid; width: 0px; height: 0.947em;"></span></span></nobr><span class="MJX_Assistive_MathML" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML"><mi>tanh</mi></math></span></span><script type="math/tex" id="MathJax-Element-16">\tanh</script></span> 
+    (값을&nbsp; <span class="math"><span class="MathJax_Preview" style="color: inherit;"></span><span class="MathJax" id="MathJax-Element-17-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;mo&gt;&amp;#x2212;&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-93" role="math" style="width: 1.576em; display: inline-block;"><span style="display: inline-block; position: relative; width: 1.299em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.438em 1001.21em 2.363em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-94"><span class="mo" id="MathJax-Span-95" style="font-family: MathJax_Main;">−</span><span class="mn" id="MathJax-Span-96" style="font-family: MathJax_Main;">1</span></span><span style="display: inline-block; width: 0px; height: 2.225em;"></span></span></span><span style="display: inline-block; overflow: hidden; vertical-align: -0.053em; border-left-width: 0px; border-left-style: solid; width: 0px; height: 0.892em;"></span></span></nobr><span class="MJX_Assistive_MathML" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML"><mo>−</mo><mn>1</mn></math></span></span><script type="math/tex" id="MathJax-Element-17">-1</script>
+    과</span> <span class="math"><span class="MathJax_Preview" style="color: inherit;"></span><span class="MathJax" id="MathJax-Element-18-Frame" tabindex="0" data-mathml="&lt;math xmlns=&quot;http://www.w3.org/1998/Math/MathML&quot;&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/math&gt;" role="presentation" style="position: relative;"><nobr aria-hidden="true"><span class="math" id="MathJax-Span-97" role="math" style="width: 0.604em; display: inline-block;"><span style="display: inline-block; position: relative; width: 0.512em; height: 0px; font-size: 120%;"><span style="position: absolute; clip: rect(1.438em 1000.42em 2.363em -999.998em); top: -2.22em; left: 0.002em;"><span class="mrow" id="MathJax-Span-98"><span class="mn" id="MathJax-Span-99" style="font-family: MathJax_Main;">1</span></span><span style="display: inline-block; width: 0px; height: 2.225em;"></span></span></span> </span></nobr><span class="MJX_Assistive_MathML" role="presentation"><math xmlns="http://www.w3.org/1998/Math/MathML"><mn>1</mn></math></span></span><script type="math/tex" id="MathJax-Element-18">1</script></span>
+    사이로 하기 위해서) 를 통과시키고 시그모이드 게이트의 결과와 곱하게 되면 원하는 부분만 출력할 수 있게 된다.</p>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-35">언어모델을 예제로 들면, 주어를 보게 되면 다음에 이어서 오게되는 동사에 대한 정보를 출력에 포함하고 싶어질 수 있다. 예를 들어 주어가 단수형인지 복수형인지를 출력에 포함해야 이어서 오는 동사의 형태를 결정할수 있으니까 말이다.</p>
+<div style="width:90%; margin-left:auto; margin-right:auto; margin-bottom:8px; margin-top:8px;">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/LSTM3-focus-o.png" alt="" data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-62">
+</div>
+<h2 id="variants-on-long-short-term-memory">Variants on Long Short Term Memory</h2>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-36">지금까지 일반적인 LSTM 에 대해서 설명해왔다. 하지만 모든 LSTM 이 위에서 말한 것과 같지는 않다. 사실, LSTM 에 대한 대부분의 논문이 조금씩 다른 모델을 사용하고 있다. 중요한 차이는 아닐 수 있지만, 몇가지를 소개해보려고 한다. </p>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-37">유명한&nbsp; LSTM 중에 <a href="ftp://ftp.idsia.ch/pub/juergen/TimeCount-IJCNN2000.pdf">Gers &amp; Schmidhuber (2000)</a> 에 의해 소개된&nbsp; “peephole connections.” 이 추가된 모델이 있다.&nbsp; 이것은 gate layer 가 cell state 를 고려 할 수 있도록 되어 있다.</p>
+<div style="width:90%; margin-left:auto; margin-right:auto; margin-bottom:8px; margin-top:8px;">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/LSTM3-var-peepholes.png" alt="" data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-63">
+</div>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-38">위의 다이어그램에서는 peepholes 를 모든 게이트에 추가한다. 하지만 많은 논문에서는 일부만 추가하는 경우가 있을 것이다</p>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-39">또다른 변형에서는 forget 과 input gate를 묶어서 사용한다. 무엇을 잊고 무엇을 기억할지 분리해서 생각하지 않고 이것을 같이 결정하는 방식이다. 이 모델에서는 새로운 값을 기록할때에만 이전 것을 잊게 되고, 따라서 어떤 것을 잊고 싶으면 새로운 값을 입력해야만 한다.</p>
+                            <div style="width:90%; margin-left:auto; margin-right:auto; margin-bottom:8px; margin-top:8px;">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/LSTM3-var-tied.png" alt="" data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-64">
+</div>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-40">조금 더 극단적인 LSTM 변형으로는 Gated Recurrent Unit, GRU&nbsp; 가 있다.&nbsp; <a href="http://arxiv.org/pdf/1406.1078v3.pdf">Cho, et al. (2014)</a> 에 의해 소개되었다.&nbsp; forget 과 input 을 하나의 “update gate.” 로 묶어버렸다. 또한 cell state 와 hidden state 또한 합쳐버리고 다른 것도 조금씩 더 바꾸었다. 이렇게 한 결과 기본 LSTM 보다 더 단순한 모델이 되었고 현재 관심있게 연구되고 있다.</p>
+<div style="width:90%; margin-left:auto; margin-right:auto; margin-bottom:8px; margin-top:8px;">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/LSTM3-var-GRU.png" alt="A gated recurrent unit neural network." data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-65">
+</div>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-41">몇가지 특징적인 LSTM 변형들을 소개해봤다. 이밖에도 Depth Gated RNNs by <a href="http://arxiv.org/pdf/1508.03790v2.pdf">Yao, et al. (2015)</a> 과 같은 변형들이 매우 많이 있다. Clockwork RNNs by <a href="http://arxiv.org/pdf/1402.3511v1.pdf">Koutnik, et al. (2014)</a> 과 같이&nbsp; long-term dependencies 에 완전히 다른 관점으로 접근한 경우도 있다. </p>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-42">어떤 것이 제일 좋을까? 그 차이는 무엇일까? <a href="http://arxiv.org/pdf/1503.04069.pdf">Greff, et al. (2015)</a> 이 유명한 변형들에 대해서 멋지게 비교해놓았고, 이 모두가 근본적으로 같다는 것을 밝혀내었다. <a href="http://jmlr.org/proceedings/papers/v37/jozefowicz15.pdf">Jozefowicz, et al. (2015)</a> 은 만개 이상의 RNN architectures 를 비교하였고, 특정 작업에서는 LSTM 보다 낫다는 것을 찾아내었다.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-43">RNN 을 사용해서 사람들이 놀라운 결과를 이루어내었다. 특히 LSTM 을 사용해서 말이다. 이것은 많은 분야에서 놀라울정도로 잘 작동한다!</p>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-44">수학공식들을 보면서 LSTM 에 겁먹었을 수도 있다. 그래도 차근히 이 글을 읽어나가면서 조금은 친숙해졌기를 바란다.</p>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-45">LSTM 은 RNN 으로 부터 이룩해내 큰 발전이었다. "이 다음은 무엇인가요" 라는 질문이 자연스럽게 나올 수 있다. 연구가들의 일반론으로 보면&nbsp; "그것은 바로 Attention 기법입니다" 라고 말한다. 기본적인 아이디어는 RNN 매 스텝마다 거대한 데이터셋으로부터 필요한 정보만 취하도록 하는 것이다. 예를 들어 RNN 을 사용해서 어떤 이미지의 캡션을 작성한다고 하며, 캡션을 만들기 위해서 이미지의 특정 부분만을 보도록 하는 것이다. 실제로 , <a href="http://arxiv.org/pdf/1502.03044v2.pdf">Xu, &gt;Xu, <em>et al.</em> (2015 가 이러한 일을 하고 있다. 이러한 attention 기법을 이용해서 재미있는 결과가 많이 나와있고, 곧 결과가 나올 것은 더 많이 있다.</a></p><a href="http://arxiv.org/pdf/1502.03044v2.pdf">
+</a><p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-46"><a href="http://arxiv.org/pdf/1502.03044v2.pdf">Attention 은 그저 RNN 안에서만 재미있는 연구 주제가 아니다.&nbsp; 예를&nbsp; 들어 Grid LSTM, </a><a href="http://arxiv.org/pdf/1507.01526v1.pdf">Kalchbrenner, <em>et al.</em> (2015)</a> 은 매우 가능성 있는 비젼을 가지고 있다. 생성모델로 RNN 을 사용하는 것은 – <a href="http://arxiv.org/pdf/1502.04623.pdf">Gregor, <em>et al.</em> (2015)</a>, <a href="http://arxiv.org/pdf/1506.02216v3.pdf">Chung, ung, <em>et al.</em> (2015)</a>, or <a href="http://arxiv.org/pdf/1411.7610v3.pdf">Bayer &amp; Osendorfer (2015  – 또한 흥미있어 보인다. 지난 몇년은 RNN 으로 흥미진진한 시간을 보내왔고, 이후로도 그렇게 될 가능성이 매우 높아보인다!</a></p><a href="http://arxiv.org/pdf/1411.7610v3.pdf">
+<h2 id="acknowledgments">Acknowledgmentsments</h2>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-47">I’m grateful to a number of people for helping me better understand LSTMs, commenting on the visualizations, and providing feedback on this post.</p>
+</a><p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-48"><a href="http://arxiv.org/pdf/1411.7610v3.pdf">I’m very grateful to my colleagues at Google for their helpful feedback, especially </a><a href="http://research.google.com/pubs/OriolVinyals.html">Oriol Vinyals</a>, <a href="http://research.google.com/pubs/GregCorrado.html">Greg Corrado</a>, <a href="http://research.google.com/pubs/JonathonShlens.html">Jon Shlens</a>, <a href="http://people.cs.umass.edu/~luke/">Luke Vilnis</a>, and <a href="http://www.cs.toronto.edu/~ilya/">Ilya Sutskever</a>. I’m also thankful to many other friends and colleagues for taking the time to help me, including <a href="https://www.linkedin.com/pub/dario-amodei/4/493/393">Dario Amodei</a>, and <a href="http://cs.stanford.edu/~jsteinhardt/">Jacob Steinhardt</a>. I’m especially thankful to <a href="http://www.kyunghyuncho.me/">Kyunghyun Cho</a> for extremely thoughtful correspondence about my diagrams.</p>
+<p data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-49">Before this post, I practiced explaining LSTMs during two seminar series I taught on neural networks. Thanks to everyone who participated in those for their patience with me, and for their feedback.</p>
+
+<section class="footnotes">
+<hr>
+<ol>
+<li id="fn1"><p>In addition to the original authors, a lot of people contributed to the modern LSTM. A non-comprehensive list is: Felix Gers, Fred Cummins, Santiago Fernandez, Justin Bayer, Daan Wierstra, Julian Togelius, Faustian Gomez, Matteo Gagliolo, and <a href="https://scholar.google.com/citations?user=DaFHynwAAAAJ&amp;hl=en">Alex Graves</a>.<a href="http://colah.github.io/posts/2015-08-Understanding-LSTMs/#fnref1">↩</a></p></li>
+</ol>
+</section>
+
+<style>
+.post{width:160px;min-height:210px;margin-bottom:15px;margin-left:5px;margin-right:5px;float:left;border:2px solid black;background-color:white;border-radius:5px}
+.post h3{margin:5px;font-size:65%;text-align:center}
+.post h4{margin:0px;font-size:50%;text-align:center}
+.post img{margin:0px;padding:2px;margin-bottom:10px;width:100%;height:155px}
+</style>
+
+
+<section>
+<hr>
+<h4>More Posts</h4>
+
+<a href="http://colah.github.io/posts/2014-07-Conv-Nets-Modular/">
+<div class="post">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/fig.png" data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-66">
+<h3>Conv Nets</h3> <h4>A Modular Perspective</h4>
+</div>
+</a>
+
+<a href="http://colah.github.io/posts/2014-03-NN-Manifolds-Topology/">
+<div class="post">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/topology.png" data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-67">
+<h3>Neural Networks, Manifolds, and Topology</h3>
+</div>
+</a>
+
+<a href="http://colah.github.io/posts/2014-07-NLP-RNNs-Representations/">
+<div class="post">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/Mikolov-GenderVecs.png" data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-68">
+<h3>Deep Learning, NLP, and Representations</h3>
+</div>
+</a>
+
+<a href="http://colah.github.io/posts/2015-02-DataList-Illustrated/">
+<div class="post">
+<img src="./Understanding LSTM Networks -- colah&#39;s blog_files/DataList.png" data-disqus-identifier="/posts/2015-08-Understanding-LSTMs/disqussion-69">
+<h3>Data.List Recursion Illustrated</h3>
+</div>
+</a>
+
+<br style="clear:left;">
+
+</section>
+
+
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        
+
+            <div id="footer">
+                <div class="container">
+                    Built by <a href="https://github.com/oinkina">Oinkina</a> with
+                    <a href="http://jaspervdj.be/hakyll">Hakyll</a> 
+                    using <a href="http://getbootstrap.com/">Bootstrap</a>, 
+                    <a href="http://www.mathjax.org/">MathJax</a>,
+                    <a href="http://disqus.com/">Disqus</a>,
+                    <a href="https://github.com/unconed/MathBox.js">MathBox.js</a>,
+                    <a href="http://highlightjs.org/">Highlight.js</a>, 
+                    and <a href="http://ignorethecode.net/blog/2010/04/20/footnotes/">Footnotes.js</a>.
+                </div>
+            </div>
+        </div><iframe id="dsq-frame1" name="dsq-frame1" allowtransparency="true" frameborder="0" scrolling="no" tabindex="0" title="Disqus" style="width: 100% !important; border: none !important; overflow: hidden !important; display: none !important; height: 0px !important; min-height: 0px !important; max-height: 0px !important;" src="./Understanding LSTM Networks -- colah&#39;s blog_files/saved_resource.html"></iframe>
+
+    <!-- jQuery-->
+    <script src="./Understanding LSTM Networks -- colah&#39;s blog_files/jquery.min.js"></script>
+    <script src="./Understanding LSTM Networks -- colah&#39;s blog_files/jquery-1.10.1.min.js"></script>
+
+    
+
+    <script src="./Understanding LSTM Networks -- colah&#39;s blog_files/highlight.pack.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <script src="./Understanding LSTM Networks -- colah&#39;s blog_files/footnotes.js"></script>
+    
+    
+
+
+    
+
+<div></div></body></html>
